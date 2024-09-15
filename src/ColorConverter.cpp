@@ -52,22 +52,28 @@ std::vector<std::string> ColorConverter::parseColors(const std::vector<std::stri
 
 
 void ColorConverter::hexToRbg(const std::vector<std::string>& colors) {
-    std::vector<std::vector<int>> res;
+    std::vector<std::vector<float>> res;
     for (auto color : colors) {
-        std::cout << color << std::endl;
-        switch (color.size())
-        {
-        case 3:
+        if (color.size() == 3 || color.size() == 4) { // For notations that repeat nums, 123 becomes 112233, 1234 becomes 11223344
+            std::vector<float> rgb;
 
-            break;
-        case 4:
+            for (int i = 0; i < color.size(); i++) {
+                std::stringstream ss;
+                unsigned int x;
 
-            break;
-        case 8:
+                ss << std::hex << color[i] << color[i];
+                ss >> x;
 
-            break;
-        default:
-            std::vector<int> rgb;
+                if (i == 3) {
+                    rgb.push_back((float) x/255); // Alpha channel, goes between 0 and 1 so need to div by 255
+                } else {
+                    rgb.push_back(x);
+                }
+            }
+
+            res.push_back(rgb);
+        } else {
+            std::vector<float> rgb;
             for (int i = 0; i < color.size(); i += 2) {
                 std::stringstream ss;
                 unsigned int x;
@@ -75,11 +81,14 @@ void ColorConverter::hexToRbg(const std::vector<std::string>& colors) {
                 ss << std::hex << color.substr(i, 2);
                 ss >> x;
 
-                rgb.push_back(x);
+                if (i == 6) {
+                    rgb.push_back((float) x/255); // Alpha channel, goes between 0 and 1 so need to div by 255
+                } else {
+                    rgb.push_back(x);
+                }
             }
 
             res.push_back(rgb);
-            break;
         }
     }
 
