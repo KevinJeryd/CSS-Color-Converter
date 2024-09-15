@@ -55,48 +55,48 @@ void ColorConverter::hexToRbg(const std::vector<std::string>& colors) {
     std::vector<std::vector<float>> res;
     for (auto color : colors) {
         if (color.size() == 3 || color.size() == 4) { // For notations that repeat nums, 123 becomes 112233, 1234 becomes 11223344
-            std::vector<float> rgb;
-
-            for (int i = 0; i < color.size(); i++) {
-                std::stringstream ss;
-                unsigned int x;
-
-                ss << std::hex << color[i] << color[i];
-                ss >> x;
-
-                if (i == 3) {
-                    rgb.push_back((float) x/255); // Alpha channel, goes between 0 and 1 so need to div by 255
-                } else {
-                    rgb.push_back(x);
-                }
-            }
-
-            res.push_back(rgb);
+            res.push_back(hexToRgb3Dig(color));
         } else {
-            std::vector<float> rgb;
-            for (int i = 0; i < color.size(); i += 2) {
-                std::stringstream ss;
-                unsigned int x;
+            res.push_back(hexToRgb6Dig(color));
+        }
+    }
+}
 
-                ss << std::hex << color.substr(i, 2);
-                ss >> x;
+std::vector<float> ColorConverter::hexToRgb3Dig(const std::string& color) {
+    std::vector<float> rgb;
+    
+    for (int i = 0; i < color.size(); i++) {
+        std::stringstream ss;
+        unsigned int x;
 
-                if (i == 6) {
-                    rgb.push_back((float) x/255); // Alpha channel, goes between 0 and 1 so need to div by 255
-                } else {
-                    rgb.push_back(x);
-                }
-            }
+        ss << std::hex << color[i] << color[i];
+        ss >> x;
 
-            res.push_back(rgb);
+        if (i == 3) { // If alpha channel
+            rgb.push_back((float) x/255); // Alpha channel, goes between 0 and 1 so need to div by 255
+        } else {
+            rgb.push_back(x);
         }
     }
 
-    for (auto rgb : res) {
-        for (auto num : rgb) {
-            std::cout << num << " ";
-        }
+    return rgb;
+}
 
-        std::cout << std::endl;
+std::vector<float> ColorConverter::hexToRgb6Dig(const std::string& color) {
+    std::vector<float> rgb;
+    for (int i = 0; i < color.size(); i += 2) {
+        std::stringstream ss;
+        unsigned int x;
+
+        ss << std::hex << color.substr(i, 2);
+        ss >> x;
+
+        if (i == 6) { // If alpha channel
+            rgb.push_back((float) x/255); // Alpha channel, goes between 0 and 1 so need to div by 255
+        } else {
+            rgb.push_back(x);
+        }
     }
+
+    return rgb;
 }
