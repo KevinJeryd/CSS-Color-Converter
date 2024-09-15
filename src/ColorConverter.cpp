@@ -2,15 +2,17 @@
 
 int ColorConverter::convertFile(const std::string& fileName) {
 
-    std::vector<std::string> cssData = openFile(fileName);
+    std::vector<std::string> cssFile = openFile(fileName);
 
-    if (cssData.empty()) {
+    if (cssFile.empty()) {
         return 1;
     }
 
-    std::vector<std::string> colors = parseColors(cssData);
-    hexToRbg(colors);
-    return 0;
+    std::vector<std::string> newFile = parseColors(cssFile);
+
+    writeContent(newFile, fileName);
+
+    return 0; 
 }
 
 std::vector<std::string> ColorConverter::openFile(const std::string& fileName) {
@@ -33,57 +35,73 @@ std::vector<std::string> ColorConverter::openFile(const std::string& fileName) {
     return cssData;
 }
 
-std::vector<std::string> ColorConverter::parseColors(const std::vector<std::string>& cssFile) {
-    std::vector<std::string> colorHex;
-
+std::vector<std::string> ColorConverter::parseColors(std::vector<std::string>& cssFile) {
+    int i = 0;
     for (auto line : cssFile) {
         size_t findHash = line.find("#");
         if (findHash != std::string::npos) {
             size_t findSemicol = line.find(";");
             if (findSemicol != std::string::npos) {
                 std::string hex = line.substr(findHash+1, findSemicol-findHash-1);
-                colorHex.push_back(hex);
+                std::string rgb = hexToRbg(hex);
+                line.replace(findHash, hex.size()+2, hexToRbg(hex));
+                cssFile[i] = line;
+            }
+        }
+        i++;
+    }
+
+    return cssFile;
+}
+
+
+std::string ColorConverter::hexToRbg(const std::string& color) {
+    if (color.size() == 3 || color.size() == 4) { // For notations that repeat nums, 123 becomes 112233, 1234 becomes 11223344
+        return hexToRgb3Dig(color).str();
+    } else {
+        return hexToRgb6Dig(color).str();
+    }
+}
+
+std::stringstream ColorConverter::hexToRgb3Dig(const std::string& color) {
+    std::stringstream decStream;
+    if (color.size() == 3) {
+        decStream << "RGB(";
+    } else {
+        decStream << "RGBA(";
+    }
+
+    for (int i = 0; i < color.size(); i++) {
+        std::stringstream hexStream;
+        unsigned int x;
+
+        hexStream << std::hex << color[i] << color[i];
+        hexStream >> x;
+
+        if (i == 3) { // If alpha channel
+            decStream << std::to_string((float) x/255); // Alpha channel, goes between 0 and 1 so need to div by 255
+        } else {
+            if (i == color.size() - 1) {
+                decStream << std::to_string(x);
+            } else {
+                decStream << std::to_string(x) << ", ";
             }
         }
     }
-
-    return colorHex;
-}
-
-
-void ColorConverter::hexToRbg(const std::vector<std::string>& colors) {
-    std::vector<std::vector<float>> res;
-    for (auto color : colors) {
-        if (color.size() == 3 || color.size() == 4) { // For notations that repeat nums, 123 becomes 112233, 1234 becomes 11223344
-            res.push_back(hexToRgb3Dig(color));
-        } else {
-            res.push_back(hexToRgb6Dig(color));
-        }
-    }
-}
-
-std::vector<float> ColorConverter::hexToRgb3Dig(const std::string& color) {
-    std::vector<float> rgb;
     
-    for (int i = 0; i < color.size(); i++) {
-        std::stringstream ss;
-        unsigned int x;
+    decStream << ");";
 
-        ss << std::hex << color[i] << color[i];
-        ss >> x;
-
-        if (i == 3) { // If alpha channel
-            rgb.push_back((float) x/255); // Alpha channel, goes between 0 and 1 so need to div by 255
-        } else {
-            rgb.push_back(x);
-        }
-    }
-
-    return rgb;
+    return decStream;
 }
 
-std::vector<float> ColorConverter::hexToRgb6Dig(const std::string& color) {
-    std::vector<float> rgb;
+std::stringstream ColorConverter::hexToRgb6Dig(const std::string& color) {
+    std::stringstream decStream;
+    if (color.size() == 6) {
+        decStream << "RGB(";
+    } else {
+        decStream << "RGBA(";
+    }
+
     for (int i = 0; i < color.size(); i += 2) {
         std::stringstream ss;
         unsigned int x;
@@ -92,11 +110,28 @@ std::vector<float> ColorConverter::hexToRgb6Dig(const std::string& color) {
         ss >> x;
 
         if (i == 6) { // If alpha channel
-            rgb.push_back((float) x/255); // Alpha channel, goes between 0 and 1 so need to div by 255
+            decStream << std::to_string((float) x/255); // Alpha channel, goes between 0 and 1 so need to div by 255
         } else {
-            rgb.push_back(x);
+            if (i == color.size() - 2) {
+                decStream << std::to_string(x);
+            } else {
+                decStream << std::to_string(x) << ", ";
+            }
         }
     }
 
-    return rgb;
+    decStream << ");";
+
+    return decStream;
+}
+
+void ColorConverter::writeContent(const std::vector<std::string>& newFile, const std::string& fileName) {
+    std::ofstream file;
+    file.open(fileName);
+
+    for (auto line : newFile) {
+        file << line << "\n";
+    }
+
+    file.close();
 }
