@@ -1,7 +1,6 @@
 #include "ColorConverter.h"
 
 int ColorConverter::convertFile(const std::string& fileName) {
-
     std::vector<std::string> cssFile = openFile(fileName);
 
     if (cssFile.empty()) {
@@ -9,7 +8,6 @@ int ColorConverter::convertFile(const std::string& fileName) {
     }
 
     std::vector<std::string> newFile = parseColors(cssFile);
-
     writeContent(newFile, fileName);
 
     return 0; 
@@ -18,14 +16,13 @@ int ColorConverter::convertFile(const std::string& fileName) {
 std::vector<std::string> ColorConverter::openFile(const std::string& fileName) {
     std::vector<std::string> cssData;
     std::fstream cssFile;
+    std::string data;
 
     cssFile.open(fileName);
 
     if (!cssFile.is_open()) {
         return std::vector<std::string>{};
     }
-
-    std::string data;
 
     while (std::getline(cssFile, data)) {
         cssData.push_back(data);
@@ -37,6 +34,7 @@ std::vector<std::string> ColorConverter::openFile(const std::string& fileName) {
 
 std::vector<std::string> ColorConverter::parseColors(std::vector<std::string>& cssFile) {
     int i = 0;
+
     for (auto line : cssFile) {
         size_t findHash = line.find("#");
         if (findHash != std::string::npos) {
@@ -81,8 +79,8 @@ std::stringstream ColorConverter::hexToRgb3Dig(const std::string& color) {
         if (i == 3) { // If alpha channel
             decStream << std::to_string((float) x/255); // Alpha channel, goes between 0 and 1 so need to div by 255
         } else {
-            if (i == color.size() - 1) {
-                decStream << std::to_string(x);
+            if (i == color.size() - 1) { // Don't want the num to have "," behind it
+                decStream << std::to_string(x); 
             } else {
                 decStream << std::to_string(x) << ", ";
             }
@@ -96,6 +94,7 @@ std::stringstream ColorConverter::hexToRgb3Dig(const std::string& color) {
 
 std::stringstream ColorConverter::hexToRgb6Dig(const std::string& color) {
     std::stringstream decStream;
+
     if (color.size() == 6) {
         decStream << "RGB(";
     } else {
@@ -112,7 +111,7 @@ std::stringstream ColorConverter::hexToRgb6Dig(const std::string& color) {
         if (i == 6) { // If alpha channel
             decStream << std::to_string((float) x/255); // Alpha channel, goes between 0 and 1 so need to div by 255
         } else {
-            if (i == color.size() - 2) {
+            if (i == color.size() - 2) { // Don't want the num to have "," behind it
                 decStream << std::to_string(x);
             } else {
                 decStream << std::to_string(x) << ", ";

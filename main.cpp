@@ -5,8 +5,6 @@
 
 int main() {
     std::string filePath = "../../color-convert/advanced.css";
-
     int res = ColorConverter::convertFile(filePath);
-
     return 0;
 }
